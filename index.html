@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Notes</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<link rel="stylesheet" href="style.css"></link>
+</head>
+<body>
+
+<div id="topbar">
+  <a href="/" id="site-title">Math Notes</a>
+  <div id="breadcrumb"></div>
+  <button id="theme-switch" onclick="document.body.classList.toggle('lightmode')" title="Toggle theme">
+    <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 4a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1zm0 13a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1zm8-5a1 1 0 0 1-1 1h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1zM5 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1zm11.95-4.95a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0zM7.757 16.243a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0zm9.9 1.414a1 1 0 0 1-1.414 0l-.707-.707a1 1 0 1 1 1.414-1.414l.707.707a1 1 0 0 1 0 1.414zM7.757 7.757a1 1 0 0 1-1.414 0l-.707-.707A1 1 0 0 1 7.05 5.636l.707.707a1 1 0 0 1 0 1.414zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+
+<div id="content"><p id="loading">Loading...</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.js"></script>
+<script>
+const md = markdownit({ html:true, linkify:true, typographer:true })
+.use(texmath,{ engine:katex, delimiters:[ 'dollars' , 'brackets'], katexOptions:{ throwOnError:false }});
+
+function getRoute(){ return (location.hash.replace(/^#/, '') || '/'); }
+function setRoute(path){ location.hash = '#' + path; }
+
+function buildBreadcrumb(path){
+ const parts = path.replace(/^\/|\/$/g,'').split('/').filter(Boolean);
+ if(!parts.length) return '';
+ const crumbs=['<a href="#/">home</a>'];
+ let acc='';
+ parts.forEach((p,i)=>{ acc += '/' + p; const label=p.replace(/\.md$/,''); crumbs.push(i<parts.length-1?`<a href="#${acc}/">${label}</a>`:`<span>${label}</span>`); });
+ return crumbs.join(' / ');
+}
+async function loadPage(path=getRoute()){
+ const mdPath = path.endsWith('/') ? path+'main.md' : path.endsWith('.md') ? path : path+'/main.md';
+ const fullPath = mdPath.startsWith('/') ? mdPath : '/' + mdPath;
+ document.getElementById('breadcrumb').innerHTML = buildBreadcrumb(path);
+ try {
+  const res = await fetch(fullPath);
+  if(!res.ok) throw new Error(res.status);
+  const raw = await res.text();
+  const stripped = raw.replace(/^---[\s\S]*?---\n/, '');
+  document.getElementById('content').innerHTML = md.render(stripped);
+ } catch(e){ document.getElementById('content').innerHTML = `<p id="error">Could not load <code>${mdPath}</code> (${e.message})</p>`; }
+}
+loadPage();
+document.addEventListener('click', e=>{
+ const a=e.target.closest('a'); if(!a) return;
+ const href=a.getAttribute('href'); if(!href || href.startsWith('http') || href.startsWith('#')) return;
+ e.preventDefault(); setRoute(href);
+});
+window.addEventListener('hashchange', ()=>loadPage());
+</script>
+</body>
+</html>
