@@ -27,6 +27,7 @@
 <script>
 const md = markdownit({ html:true, linkify:true, typographer:true })
 .use(texmath,{ engine:katex, delimiters:[ 'dollars' , 'brackets'], katexOptions:{ throwOnError:false }});
+const BASE = location.pathname.replace(/\/[^/]*$/, '/');
 
 function getRoute(){ return (location.hash.replace(/^#/, '') || '/'); }
 function setRoute(path){ location.hash = '#' + path; }
@@ -41,7 +42,7 @@ function buildBreadcrumb(path){
 }
 async function loadPage(path=getRoute()){
  const mdPath = path.endsWith('/') ? path+'main.md' : path.endsWith('.md') ? path : path+'/main.md';
- const fullPath = mdPath.startsWith('/') ? mdPath : '/' + mdPath;
+ const fullPath = BASE + (mdPath.startsWith('/') ? mdPath.slice(1) : mdPath);
  document.getElementById('breadcrumb').innerHTML = buildBreadcrumb(path);
  try {
   const res = await fetch(fullPath);

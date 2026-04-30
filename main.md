@@ -7,4 +7,4 @@ Hi! This is a site (in progress) containing some parts of the Alberta math curri
 - [Math 10C](10C)
 - (In progress) [Math 20-1]
 - (In progress) [Math 20-2]
-- (In progress) [Math 30-1 ]
+- (In progress) [Math 30-1]
